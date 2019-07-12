@@ -27,6 +27,68 @@
 #       def ransacMatching(A, B):
 #           A & B: List of List
 #
+import numpy as np
+import cv2
+
+def random_sample_sets(A, B):
+
+    pts = np.random.randint(A.shape[0], size=4)
+
+    match_set = [(A[i,:], B[i,:]) for i in pts]
+
+    return match_set
+
+
+def compute_homography(match_set):
+    pass
+
+
+def is_inlier(ptA, ptB, homography, threshold):
+
+    return True
 
 def ransacMatching(A, B):
-    pass
+
+    matrix_A = np.matrix(A)
+    matrix_B = np.matrix(B)
+
+    match_threshold = 0.6
+
+    max_iter = 2000
+
+    inlier_threshold = 0
+
+    homography = None
+
+    match_score = 0
+
+    for _ in range(max_iter):
+        # Repeat steps to maximize match
+
+        inlier = []
+
+        # Step 1: Randomly sample sets of 4 point matches
+        match_set = random_sample_sets(matrix_A, matrix_B)
+
+
+        # Step 2: Compute homography of the inliers
+        h = compute_homography(match_set)
+
+        # Step 3: Use this computed homography to test all the other outliers. And separated them by using a threshold
+        for i in range(matrix_A.shape[0]):
+            if is_inlier(matrix_A[i,:], matrix_B[i,:], h, inlier_threshold):
+                inlier.append(i)
+
+        if len(inlier) >=  match_threshold * matrix_A.shape[0]:
+            break
+
+        homography = homography if match_score > len(inlier) else h
+
+        match_score = len(inlier) if match_score < len(inlier) else match_score
+
+    return homography
+
+
+
+
+
