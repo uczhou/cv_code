@@ -34,17 +34,19 @@ def random_sample_sets(A, B):
 
     pts = np.random.randint(A.shape[0], size=4)
 
-    match_set = [(A[i,:], B[i,:]) for i in pts]
+    ptsA = [A[i,:]for i in pts]
+    ptsB = [B[i,:] for i in pts]
 
-    return match_set
+    return ptsA, ptsB
 
 
-def compute_homography(match_set):
+def compute_homography(ptsA, ptsB):
+    # Calculate homography
     pass
 
 
 def is_inlier(ptA, ptB, homography, threshold):
-
+    # Check if (ptA, ptB) pair is inlier
     return True
 
 def ransacMatching(A, B):
@@ -68,11 +70,11 @@ def ransacMatching(A, B):
         inlier = []
 
         # Step 1: Randomly sample sets of 4 point matches
-        match_set = random_sample_sets(matrix_A, matrix_B)
+        ptsA, ptsB = random_sample_sets(matrix_A, matrix_B)
 
 
         # Step 2: Compute homography of the inliers
-        h = compute_homography(match_set)
+        h = compute_homography(ptsA, ptsB)
 
         # Step 3: Use this computed homography to test all the other outliers. And separated them by using a threshold
         for i in range(matrix_A.shape[0]):
