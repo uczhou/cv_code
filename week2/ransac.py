@@ -30,26 +30,101 @@
 import numpy as np
 import cv2
 
+
 def random_sample_sets(A, B):
 
     pts = np.random.randint(A.shape[0], size=4)
 
-    ptsA = [A[i,:]for i in pts]
-    ptsB = [B[i,:] for i in pts]
+    ptsA = [A[i, :]for i in pts]
+    ptsB = [B[i, :] for i in pts]
 
     return ptsA, ptsB
 
 
+def find_features(img):
+    '''
+    Find features by using SIFT algorithm
+    :param img:
+    :return:
+    '''
+    sift = cv2.xfeatures2d.SIFT_create()
+    # detect SIFT
+    kp = sift.detect(img, None)  # None for mask
+    # compute SIFT descriptor
+    kp, desc = sift.compute(img, kp)
+
+    return kp, desc
+
+
+def match_features(kp1, kp2, desc1, desc2):
+    '''
+    Match feature points in 2 images
+    :param kp1:
+    :param kp2:
+    :param desc1:
+    :param desc2:
+    :return:
+    '''
+    print("Matching Features...")
+    matcher = cv2.BFMatcher(cv2.NORM_L2, True)
+    matches = matcher.match(desc1, desc2)
+
+    A = []
+    B = []
+    for match in matches:
+        (x1, y1) = kp1[match.queryIdx].pt
+        (x2, y2) = kp2[match.trainIdx].pt
+        A.append([x1, y1])
+        B.append([x2, y2])
+
+    return A, B
+
+
 def compute_homography(ptsA, ptsB):
+    '''
+    Compute homography by using cv2 getPerspectiveTransform function
+    :param ptsA:
+    :param ptsB:
+    :return:
+    '''
     # Calculate homography
-    pass
+    ptsA_matrix = np.float32(ptsA)
+    ptsB_matrix = np.float32(ptsB)
+    return cv2.getPerspectiveTransform(ptsA_matrix, ptsB_matrix)
 
 
 def is_inlier(ptA, ptB, homography, threshold):
-    # Check if (ptA, ptB) pair is inlier
-    return True
+    '''
+    Check if (ptA, ptB) pair is inlier
+    :param ptA:
+    :param ptB:
+    :param homography:
+    :param threshold:
+    :return:
+    '''
+
+    ptB_predict = np.dot(homography, np.transpose(np.matrix([ptA[0, 0], ptA[0, 1], 1])))
+
+    ptB_predict = ptB_predict / ptB_predict[2]
+
+    diff = np.matrix([ptB[0, 0], ptB[0, 1], 1]) - np.transpose(ptB_predict)
+
+    error = np.linalg.norm(diff)
+
+    if error > threshold:
+
+        return False
+    else:
+        return True
+
 
 def ransacMatching(A, B):
+    '''
+
+    :param A:
+    :param B:
+    :return:
+    '''
 
     matrix_A = np.matrix(A)
     matrix_B = np.matrix(B)
@@ -58,7 +133,7 @@ def ransacMatching(A, B):
 
     max_iter = 2000
 
-    inlier_threshold = 0
+    inlier_threshold = 6
 
     homography = None
 
@@ -72,13 +147,13 @@ def ransacMatching(A, B):
         # Step 1: Randomly sample sets of 4 point matches
         ptsA, ptsB = random_sample_sets(matrix_A, matrix_B)
 
-
         # Step 2: Compute homography of the inliers
+
         h = compute_homography(ptsA, ptsB)
 
         # Step 3: Use this computed homography to test all the other outliers. And separated them by using a threshold
         for i in range(matrix_A.shape[0]):
-            if is_inlier(matrix_A[i,:], matrix_B[i,:], h, inlier_threshold):
+            if is_inlier(matrix_A[i, :], matrix_B[i, :], h, inlier_threshold):
                 inlier.append(i)
 
         if len(inlier) >=  match_threshold * matrix_A.shape[0]:
