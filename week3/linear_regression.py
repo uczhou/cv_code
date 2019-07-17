@@ -2,12 +2,6 @@ import numpy as np
 
 
 def inference(w, b, x_list):
-    # predict_y_list = []
-    #
-    # for x in x_list:
-    #     predict_y_list.append(w * x + b)
-    #
-    # return predict_y_list
 
     return np.array(x_list) * w + b
 
@@ -28,21 +22,12 @@ def gradient(predict_y, gt_y, x):
 
 
 def batch_gradient(predict_y_list, gt_y_list, x_list, w, b, lr):
-    # avg_dw = 0
-    # avg_db = 0
 
     batch_size = len(x_list)
 
     diff = np.array(predict_y_list) - np.array(gt_y_list)
     avg_dw = np.sum(np.multiply(diff, np.array(x_list))) / batch_size
     avg_db = np.sum(diff) / batch_size
-
-    # for i in range(batch_size):
-    #     dw, db = gradient(predict_y_list[i], gt_y_list[i], x_list[i])
-    #     avg_dw += dw
-    #     avg_db += db
-    # avg_dw /= batch_size
-    # avg_db /= batch_size
 
     w -= lr * avg_dw
     b -= lr * avg_db
