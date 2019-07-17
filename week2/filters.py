@@ -25,8 +25,19 @@ import numpy as np
 def strided_app(image, kernel):
     rows, cols = image.shape[:2]
     kernel_rows, kernel_cols = kernel.shape
-    return np.lib.stride_tricks.as_strided(image, shape=[rows - kernel_rows + 1, cols - kernel_cols + 1, kernel_rows, kernel_cols],
-                                    strides=image.strides + image.strides)
+    return np.lib.stride_tricks.as_strided(image,
+                                           shape=[rows - kernel_rows + 1, cols - kernel_cols + 1, kernel_rows, kernel_cols],
+                                           strides=image.strides + image.strides)
+
+
+def find_median(vector):
+    m, n = vector.shape
+    vector_copy = np.copy(vector).reshape(1, m*n)
+    np.ndarray.sort(vector_copy)
+
+    size = m * n
+
+    return (sum(vector_copy[0, size // 2 - 1:size // 2 + 1]) / 2.0, vector_copy[0, size // 2])[size % 2]
 
 
 def medianBlur(img, kernel, padding_way='REPLICA'):
@@ -44,18 +55,18 @@ def medianBlur(img, kernel, padding_way='REPLICA'):
     padding_cols_right = kernel_cols // 2 if kernel_cols % 2 == 1 else kernel_cols // 2 - 1
 
     if padding_mode == 'constant':
-        img_padded = np.lib.pad(img, [(padding_rows_up, padding_rows_down),(padding_cols_left, padding_cols_right)],
+        img_padded = np.lib.pad(img, [(padding_rows_up, padding_rows_down), (padding_cols_left, padding_cols_right)],
                                 mode=padding_mode, constant_values=0)
     else:
-        img_padded = np.lib.pad(img, [(padding_rows_up, padding_rows_down),(padding_cols_left, padding_cols_right)],
+        img_padded = np.lib.pad(img, [(padding_rows_up, padding_rows_down), (padding_cols_left, padding_cols_right)],
                                 mode=padding_mode)
 
-    dist = np.zeros(shape=(rows,cols))
+    dist = np.zeros(shape=(rows, cols))
 
     for i in range(rows):
         for j in range(cols):
-            dist[i][j] = np.median(img_padded[i:i+kernel_rows, j: j+kernel_cols]).astype('uint8')
-
+            # dist[i][j] = np.median(img_padded[i:i+kernel_rows, j: j+kernel_cols]).astype('uint8')
+            dist[i][j] = find_median(img_padded[i:i+kernel_rows, j: j+kernel_cols]).astype('uint8')
     return dist
 
 
@@ -80,12 +91,12 @@ def median_blur_accelerated(img, kernel, padding_way='REPLICA'):
         img_padded = np.lib.pad(img, [(padding_rows_up, padding_rows_down),(padding_cols_left, padding_cols_right)],
                                 mode=padding_mode)
 
-    dist = np.zeros(shape=(rows,cols))
+    dist = np.zeros(shape=(rows, cols))
 
     for i in range(rows):
         # Calculate row by to avoid memory segmentation fault if image is too large.
         strided = strided_app(img_padded[i: i + kernel_rows, :], kernel)
 
-        dist[i, :] = np.median(strided, axis=(2,3)).astype('uint8')
+        dist[i, :] = np.median(strided, axis=(2, 3)).astype('uint8')
 
     return dist

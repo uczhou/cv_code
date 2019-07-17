@@ -129,7 +129,7 @@ def ransacMatching(A, B):
     matrix_A = np.matrix(A)
     matrix_B = np.matrix(B)
 
-    match_threshold = 0.6
+    match_threshold = 0.9
 
     max_iter = 2000
 
