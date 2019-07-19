@@ -33,11 +33,58 @@ def strided_app(image, kernel):
 def find_median(vector):
     m, n = vector.shape
     vector_copy = np.copy(vector).reshape(1, m*n)
-    np.ndarray.sort(vector_copy)
+
+    # np.ndarray.sort(vector_copy)
 
     size = m * n
 
-    return (sum(vector_copy[0, size // 2 - 1:size // 2 + 1]) / 2.0, vector_copy[0, size // 2])[size % 2]
+    if size % 2 == 1:
+        return quick_select(vector_copy[0, :], size // 2)
+    else:
+        return (quick_select(vector_copy[0, :], size // 2 - 1) + quick_select(vector_copy[0, :], size // 2)) / 2
+
+    # return (sum(vector_copy[0, size // 2 - 1:size // 2 + 1]) / 2.0, vector_copy[0, size // 2])[size % 2]
+
+
+def quick_select(vector, kth):
+    # O(n)
+
+    def select(vector, start, end, kth):
+
+        if start == end:
+            return vector[start]
+
+        pivot = np.random.randint(start, end)
+
+        vector[start], vector[pivot] = vector[pivot], vector[start]
+
+        vl, vr = start + 1, end
+        while vl <= vr:
+            if vector[vl] > vector[start] and vector[vr] <= vector[start]:
+                vector[vl], vector[vr] = vector[vr], vector[vl]
+                vl += 1
+                vr -= 1
+            elif vector[vl] <= vector[start]:
+                vl += 1
+            else:
+                vr -= 1
+
+        vector[start], vector[vl] = vector[vl], vector[start]
+
+        if vl == kth:
+            return vector[vl]
+
+        elif vl < kth:
+            return select(vector, vl+1, end, kth)
+
+        else:
+            return select(vector, start, vl - 1, kth)
+
+    if vector is None or kth < 0 or kth >= len(vector):
+        return None
+
+
+    return select(vector, 0, len(vector)-1, kth)
 
 
 def medianBlur(img, kernel, padding_way='REPLICA'):
