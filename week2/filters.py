@@ -33,6 +33,9 @@ def strided_app(image, kernel):
 def find_median(vector):
     m, n = vector.shape
     vector_copy = np.copy(vector).reshape(1, m*n)
+
+    # Sort: O(nlog(n))
+    # Select Median:
     np.ndarray.sort(vector_copy)
 
     size = m * n
