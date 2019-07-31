@@ -75,9 +75,9 @@ def train(x_list, gt_y_list, lr, batch_size, max_iter):
     w = 0
     b = 0
 
-    normalized_X = preprocessing.normalize([x_list])
+    normalized_x = preprocessing.normalize([x_list])
     # print(normalized_X.shape)
-    x_list = normalized_X[0, :]
+    x_list = normalized_x[0, :]
 
     for i in range(max_iter):
         indexes = np.random.choice(len(x_list), batch_size)
