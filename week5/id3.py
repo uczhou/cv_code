@@ -20,7 +20,7 @@ class ID3:
     @staticmethod
     def calc_entropy(num, total):
         # -p * logp
-        p = num / total
+        p = float(num) / total
         return -p * np.log(p)
 
     def calc_info_gain(self, entropy, data_set, col_name):
